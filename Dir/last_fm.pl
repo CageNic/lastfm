@@ -12,21 +12,20 @@ use lib '.'; # module and script in same directory
 use csv_grab ':all';
 
 
-pp capture_csv('test_send_me_to_a_sub.csv');
+pp capture_csv('tracks.txt');
 
-my $aoh = capture_csv('test_send_me_to_a_sub.csv');
+my $aoh = capture_csv('tracks.txt');
 
 print ref $aoh , "\n";
-
-# no need for api keys - not a web app
-# standard password will suffice
 
 my $config_file = "$ENV{HOME}/.lastfm.cnf";
 die "$config_file not there" unless -e $config_file;
 
 my $config = Config::Tiny->read($config_file);
-my $user     = $config->{lastfm}->{user};
+
+my $user    = $config->{lastfm}->{user};
 my $password = $config->{lastfm}->{password};
+
 
 my $submit = Net::LastFM::Submission->new(
 	    user      => $user,
@@ -42,7 +41,7 @@ $submit->submit(
     title  => 'Chance',
     time   => time - 10*60, # 10 minutes ago
 );
-# submit hashref (treated as array of hashes)
+# submit hashref (treated as array of hashes - no need to loop through the array of hashes)
 
 # $submit->submit(
  #    {
@@ -55,11 +54,7 @@ $submit->submit(
  #        title  => 'London Calling',
  #        time   => time - 10*60,
  #    }
- 
-######################################################
-# loop over array of hashes from csv_grab / csv file #
-# get at inner hash reference to submit              #
-######################################################
+ # );
 
  # submit the array of hashes created by subroutine from csv_grab module 
  for (@{$aoh}) {

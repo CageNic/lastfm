@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 package csv_grab;
 use Data::Dump qw(pp);
 use Carp qw(croak);
@@ -17,7 +19,12 @@ sub capture_csv {
   open (my $fh,'<',$file);
   while (my $lines = <$fh>) {
     chomp $lines;
-    my $arr = [split (/\t/,$lines)];
+    $lines =~ s/ICY Info: StreamTitle=//;
+    next if $lines =~ m/www.deltaradio.de/;
+    $lines =~ s/'//g;
+    $lines =~ s/;$//;
+    
+    my $arr = [split (/ - /,$lines)];
     
     my $hash = {
 		'artist' => $arr->[0],
