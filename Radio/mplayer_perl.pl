@@ -1,5 +1,6 @@
 # send the track contents of mplayer output to file
 # perl mplayer_perl.pl B | stdbuf -o L grep 'ICY' > tracks.txt
+# buffering off autoflush on
 
 
 #!/usr/bin/perl
