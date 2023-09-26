@@ -1,0 +1,83 @@
+#########################################################
+# perl directory trees - using lib and modules examined #
+#########################################################
+
+# Note that unless the .pl file and the .pm file are in the same directory, you cannot exexcute a script from within its working directory and have it use the modules/packages in other directories
+
+# for example
+# using this structure...
+
+.
+├── lib
+│   └── My
+│       ├── Music
+│       │   └── LastFM_Package.pm
+│       └── Number
+│           ├── Test.pm
+│           └── Utilities.pm
+├── Production
+│   └── primes.pl
+└── t
+    └── lastFM.t
+
+# lastFM.t uses LastFM_Package.pm
+# if we navigate to t directory and execute it in that direcotry, it will complain it cannot find LastFM_Package.pm in @INC
+# if we eexecute it at the root level directory (above lib, Production and t) as; perl t/lastFM.t it works as it finds lib pathway (from use lib 'lib')
+# it finds My/Music/LastFM_Package (the module)
+
+cat LastFM_Package.pm
+
+package My::Music::LastFM_Package;
+use strict;
+use warnings;
+use WWW::Mechanize;
+use Data::Dump qw(pp);
+use JSON 'decode_json';
+use Config::Tiny;
+
+our $VERSION = 0.02;
+
+###########################################################################
+# not sure why $request_url needs to be exported and the other vars don't #
+###########################################################################
+
+# export the Data::Dump pp function and the JSON decode_json funtion
+
+use base 'Exporter';
+our @EXPORT_OK = qw(pp decode_json $request_url);
+our %EXPORT_TAGS = ( all => \@EXPORT_OK);
+
+our $config_file = "$ENV{HOME}/.lastfm.cnf";
+die "$config_file not there" unless -e $config_file;
+
+our $config = Config::Tiny->read($config_file);
+our $USER    = $config->{lastfm}->{user};
+our $API_KEY = $config->{lastfm}->{api_key};
+
+our $BASE_URL    = "http://ws.audioscrobbler.com/2.0";
+our $method_url  = "user.getweeklyartistchart";
+our $FORMAT     = "json";
+
+our $request_url = "$BASE_URL/?method=$method_url&user=$USER&api_key=$API_KEY&format=$FORMAT";
+
+1;
+
+cat lastFM.t
+
+################################
+# Mechanize to get LastFM data #
+################################
+
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib 'lib';
+use My::Music::LastFM_Package ':all';
+
+my $ua = WWW::Mechanize->new();
+$ua->get($request_url);
+die "Cannot get the data" unless $ua->success;
+
+my $perl_data = decode_json($ua->content);
+pp ($perl_data);  
+exit;
